@@ -101,6 +101,25 @@ def close_all():
 def get_offers():
     return db.get_offers()
 
+def profits():
+    res = 0
+
+    list_offers = db.get_offers()
+    for o in list_offers:
+        #if not o['status']=='close':
+        #    continue
+
+        if o['type']=='B':
+            res += -(o['price'])
+        else:
+            res += o['price']
+
+    if len(list_offers)>0:
+        if list_offers[-1]['type']=='B':
+            res += list_offers[-1]['price']
+
+    return res
+
 def get_take():
     res = get_last_offer()
 
@@ -118,13 +137,8 @@ def add_offer(qpProvider, price, price2, type, bb_data, price_data, quotes, acco
         if not last_offer['status'] in status_close:
             return
 
-        if type=='B':
-            if last_offer['type']=='B':
-                return
-
-        elif type=='S':
-            if last_offer['type']=='S':
-                return
+        if type==last_offer['type']:
+            return
 
     else:
         if type=='S':
@@ -156,10 +170,10 @@ def add_offer(qpProvider, price, price2, type, bb_data, price_data, quotes, acco
 
         price = str(round(int(price), -1))
         transact_id = str(transact_id)
+        offer['status'] = 'accept'
 
         send_res = send_transaction_new_order(qpProvider, price, type, transact_id, account, classCode, secCode)
 
-        offer['status'] = 'accept'
         offer['send_res'] = send_res
         if len(send_res)>0:
            offer['status'] = 'error'
