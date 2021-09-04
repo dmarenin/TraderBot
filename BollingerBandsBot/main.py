@@ -1,209 +1,111 @@
-import _thread
-import price
-from QuikPy import QuikPy
-import datetime
-import bb
 import time
+from QuikPy import QuikPy
+import price
+import bb
 import message
-import uuid
-import random
+import db
+import offers
 
 
 #bid покупка
 #offer предложение
 
+
 firmId = 'SPBFUT'
 classCode = 'SPBFUT'
 secCode = 'RIU1'
-quotes = []
-offers = []
-account = 'SPBFUT12wA8' #L01-00000F0010UNRF
-offers_update = False
+account = 'SPBFUT12wA8'
+
+STOP_TRADE = False
+QUOTES = []
 
 
 def on_trans_reply(data):
-    print('OnTransReply')
-    print(data['data'])
+    db.log('OnTransReply', data['data'])
 
 def on_order(data):
-    global offers
-    global offers_update
+    db.log('OnOrder', data['data'])
 
-    print('OnOrder')
-    print(data['data'])
+    offers.update(data['data'])
 
-    while offers_update!=False:
-        time.sleep(0.2)
-    offers_update=True
-
-    for off in offers:
-        if off['trans_Id']==data['data']['trans_id']:
-            off['order_num'] = int(data['data']['order_num'])
-            if  int(data['data']['balance'])==0:
-                off['status'] = 3
-                #off['status'] = int(data['data']['ext_order_status'])
-                #off['result_msg'] = data['data']['result_msg']
-                message.send(f"{datetime.datetime.now()} заявка выполнена")
-                break
-        break
-
-    offers_update=False
 def on_trade(data):
-    print('OnTrade')
-    print(data['data'])
+    db.log('OnTrade', data['data'])
 
 def on_futures_client_holding(data):
-    #print('OnFuturesClientHolding')
-    #print(data['data'])
-
-    real_varmargin = data['data']['real_varmargin']
-
-    print(f"{datetime.datetime.now()} real_varmargin: {real_varmargin}")
-
-    #if int(data['data']['real_varmargin'])<(-200):
-    #    message.send(f"{datetime.datetime.now()} real_varmargin: {real_varmargin}")
+    db.log('OnFuturesClientHolding', data['data'])
 
 def on_depo_limit(data):
-    print('OnDepoLimit')
-    print(data['data'])
-    
-    message.send(f"{datetime.datetime.now()} OnDepoLimit")
+    db.log('OnDepoLimit', data['data'])
 
 def on_depo_limit_delete(data):
-    print('OnDepoLimitDelete')
-    print(data['data'])
+    db.log('OnDepoLimitDelete', data['data'])
 
-    message.send(f"{datetime.datetime.now()} OnDepoLimitDelete")
 
 def set_quotes(data):
-    global quotes
+    global QUOTES
 
-    quotes = data['data']
+    QUOTES = data['data']
 
-def add_offer(qpProvider, price, price2, type, bb_data, price_data, _quotes):
-    global offers
-    global offers_update
+def do_loop(qpProvider):
+    global QUOTES
+    global STOP_TRADE
 
-    if len(offers)>0:
-        if type=='B':
-            if offers[-1]['type']=='B':
-                #print('exist active order')
-                return
-        elif type=='S':
-            if offers[-1]['type']=='S':
-                #print('exist active order')
-                return
+    while True:
+        time.sleep(1)
+        while STOP_TRADE:
+            time.sleep(60)
 
-    else:
-        if type=='S':
-            return
+        start_time = time.time()
 
-    if len(offers)>0:
-        if offers[-1]['status']!=3:
-            return
+        bb_data = bb.get_data(qpProvider)
+        db.log('bb_data', bb_data)
 
-    print(f"{datetime.datetime.now()} {type} {price} {price2}")
+        price_data = price.get_data(qpProvider)
+        db.log('price_data', price_data)
 
-    message.send(f"{datetime.datetime.now()} {type} {price} {price2}")
+        last_bb_data = bb_data[-1]
+        last_price_data = price_data[-1]
 
-    offer = {}
-    offer['datetime'] = datetime.datetime.now()
-    offer['type'] = type
-    offer['price'] = price
-    offer['price2'] = price2
+        last_bb_data_close = bb_data[-2]
+        last_price_data_close = price_data[-2]
 
-    offer['bb_data'] = bb_data
-    offer['price_data'] = price_data
-    offer['_quotes'] = _quotes
+        try:
+            _quotes = QUOTES.copy()
+        except:
+            continue
 
-    trans_Id = random.randint(1, 100000)
+        db.log('quotes', _quotes)
 
-    send_res = send_transaction_new_order(qpProvider, price, type, trans_Id)
+        print("--- %s seconds step1 ---" % (time.time() - start_time))
 
-    offer['trans_Id'] = trans_Id
-    offer['order_num'] = None
-    offer['send_res'] = send_res
+        if len(_quotes)==0:
+            continue
 
-    offer['status'] = '-1'
+        if _quotes.get('bid') is None:
+            continue
 
-    while offers_update!=False:
-        time.sleep(0.2)
-    offers_update=True
+        last_bid = int(_quotes['bid'][-1]['price'])
+        db.log('last_bid', last_bid)
 
-    offers.append(offer)
-    
-    offers_update=False
+        first_offer = int(_quotes['offer'][0]['price'])
+        db.log('first_offer', first_offer)
 
-    #print(offers)
+        take = offers.get_take()
 
-def send_transaction_new_order(qpProvider, price, operation, trans_Id):
-    transaction = {'TRANS_ID': str(trans_Id),
-                   'CLIENT_CODE': '',
-                   'ACCOUNT': account,
-                   'ACTION': 'NEW_ORDER',
-                   'CLASSCODE': classCode,
-                   'SECCODE': secCode,
-                   'OPERATION': operation,
-                   'PRICE': str(round(int(price), -1)),
-                   'QUANTITY': '1',
-                   'TYPE': 'L'}# L = лимитная заявка (по умолчанию), M = рыночная заявка
+        if last_bb_data_close['lower_line']>=first_offer:
+            offers.add_offer(qpProvider, last_bb_data['lower_line'], first_offer, 'B', bb_data, price_data, _quotes)
 
-    res = qpProvider.SendTransaction(transaction)
+        elif take > 0:
+            if take<=last_bid:
+                offers.add_offer(qpProvider, last_bid, take, 'S', bb_data, price_data, _quotes)
 
-    error = ''
-    if not res.get('lua_error') is None:
-        error = res['lua_error']
+        offers.garbage_collect()
 
-    print(f"Новая лимитная/рыночная заявка отправлена на рынок статус ошибки: {error}")
+        print("--- %s seconds step2 ---" % (time.time() - start_time))
 
-    message.send(f"Новая лимитная/рыночная заявка отправлена на рынок статус ошибки: {error}")
-
-    return error
-
-
-
-    # Удаление существующей лимитной заявки
-    # orderNum = 1234567890123456789  # 19-и значный номер заявки
-    # transaction = {
-    #     'TRANS_ID': str(TransId),  # Номер транзакции задается клиентом
-    #     'ACTION': 'KILL_ORDER',  # Тип заявки: Удаление существующей заявки
-    #     'CLASSCODE': classCode,  # Код площадки
-    #     'SECCODE': secCode,  # Код тикера
-    #     'ORDER_KEY': str(orderNum)}  # Номер заявки
-    # print(f'Удаление заявки отправлено на рынок: {qpProvider.SendTransaction(transaction)["data"]}')
-
-    # Новая стоп заявка
-    #StopSteps = 10  # Размер проскальзывания в шагах цены
-    #slippage = float(qpProvider.GetSecurityInfo(classCode, secCode)['data']['min_price_step']) * StopSteps  # Размер проскальзывания в деньгах
-    #if slippage.is_integer():  # Целое значение проскальзывания мы должны отправлять без десятичных знаков
-    #    slippage = int(slippage)  # поэтому, приводим такое проскальзывание к целому числу
-    #transaction = {  # Все значения должны передаваться в виде строк
-    #    'TRANS_ID': str(TransId),  # Номер транзакции задается клиентом
-    #    'CLIENT_CODE': '',  # Код клиента. Для фьючерсов его нет
-    #    'ACCOUNT': 'SPBFUT00PST',  # Счет
-    #    'ACTION': 'NEW_STOP_ORDER',  # Тип заявки: Новая стоп заявка
-    #    'CLASSCODE': classCode,  # Код площадки
-    #    'SECCODE': secCode,  # Код тикера
-    #    'OPERATION': 'B',  # B = покупка, S = продажа
-    #    'PRICE': str(price),  # Цена исполнения
-    #    'QUANTITY': str(quantity),  # Кол-во в лотах
-    #    'STOPPRICE': str(price + slippage),  # Стоп цена исполнения
-    #    'EXPIRY_DATE': 'GTC'}  # Срок действия до отмены
-    #print(f'Новая стоп заявка отправлена на рынок: {qpProvider.SendTransaction(transaction)["data"]}')
-
-    # Удаление существующей стоп заявки
-    # orderNum = 1234567  # Номер заявки
-    # transaction = {
-    #     'TRANS_ID': str(TransId),  # Номер транзакции задается клиентом
-    #     'ACTION': 'KILL_STOP_ORDER',  # Тип заявки: Удаление существующей заявки
-    #     'CLASSCODE': classCode,  # Код площадки
-    #     'SECCODE': secCode,  # Код тикера
-    #     'STOP_ORDER_KEY': str(orderNum)}  # Номер заявки
-    # print(f'Удаление стоп заявки отправлено на рынок: {qpProvider.SendTransaction(transaction)["data"]}')
+    pass
 
 def main():
-    global quotes
-
     qpProvider = QuikPy(Host='localhost')
 
     qpProvider.GetQuoteLevel2(classCode, secCode)
@@ -219,62 +121,9 @@ def main():
 
     time.sleep(5)
 
-    message.init()
+    #message.init()
 
-    message.send(f"{datetime.datetime.now()} start")
-
-    while True:
-        time.sleep(1.5)
-
-        bb_data = bb.get_data(qpProvider)
-        #print(bb_data)
-
-        price_data = price.get_data(qpProvider)
-        #print(price_data)
-
-        last_bb_data = bb_data[-1]
-        last_price_data = price_data[-1]
-
-        last_bb_data_close = bb_data[-2]
-        last_price_data_close = price_data[-2]
-
-        try:
-            _quotes = quotes.copy()
-        except:
-            continue
-
-        if len(_quotes)==0:
-            continue
-
-        if _quotes.get('bid') is None:
-            continue
-
-        last_bid = _quotes['bid'][-1]['price']
-        #print(f'first_bid - {first_bid}')
-
-        first_offer = _quotes['offer'][0]['price']
-        #print(f'first_offer - {first_offer}')
-
-        #print(f"lower_line - {last_bb_data['lower_line']}")
-        #print(f"upper_line - {last_bb_data['upper_line']}")
-        #print(f"lower_line_close - {last_bb_data_close['lower_line']}")
-        #print(f"upper_line_close - {last_bb_data_close['upper_line']}")
-
-        take = None
-        if len(offers)>0:
-            if offers[-1]['type']=='B':
-                take = offers[-1]['price']+200
-
-        if last_bb_data_close['lower_line']>=int(first_offer):
-            add_offer(qpProvider, last_bb_data['lower_line'], first_offer, 'B', bb_data, price_data, _quotes)
-
-        elif not take is None:
-            if take<=int(last_bid):
-                add_offer(qpProvider, last_bid, take, 'S', bb_data, price_data, _quotes)
-
-        #elif last_bb_data_close['upper_line']<=int(last_bid):
-        #    add_offer(qpProvider, last_bb_data['upper_line'], first_bid, 'S', bb_data, price_data, _quotes)
-    pass
+    do_loop(qpProvider)
 
 
 if __name__ == "__main__":
