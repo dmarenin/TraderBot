@@ -20,8 +20,6 @@ def garbage_collect(qpProvider, account, classCode, secCode):
 
             db.update_offer(last_offer)
 
-            message.send(f"Смена статуса {status} - {last_offer['status']}")
-
     elif status=='accept':
         if (datetime.datetime.now()-last_offer['dt']).seconds>30:
             last_offer['send_res'] = last_offer['send_res']+'\n'+'Смена статуса с accept на cancel'
@@ -46,9 +44,9 @@ def garbage_collect(qpProvider, account, classCode, secCode):
 
         db.update_offer(last_offer)
 
-    print(f"Смена статуса {status} - {last_offer['status']}")
+    print(f"{datetime.datetime.now()} - Смена статуса {status} - {last_offer['status']}")
 
-    message.send(f"Смена статуса {status} - {last_offer['status']}")
+    message.send(f"{datetime.datetime.now()} - Смена статуса {status} - {last_offer['status']}")
 
 def update(data):
     trans_Id = data['data']['trans_id']
@@ -67,9 +65,9 @@ def update(data):
         offer['order_num'] = int(data['data']['order_num'])
         offer['status'] = 'close'
 
-        print(f"Заявка выполнена {offer['type']} {offer['price']}")
+        print(f"{datetime.datetime.now()} - Заявка выполнена {offer['type']} {offer['price']}")
 
-        message.send(f"Заявка выполнена {offer['type']} {offer['price']}")
+        message.send(f"{datetime.datetime.now()} - Заявка выполнена {offer['type']} {offer['price']}")
 
         db.update_offer(offer)
 
@@ -143,7 +141,7 @@ def add_offer(qpProvider, price, price2, type, bb_data, price_data, quotes, acco
 
     transact_id = db.add_offer(offer)
     if transact_id is None:
-        print(f"Не удалось получить row id")
+        print(f"{datetime.datetime.now()} - Не удалось получить row id")
         offer['status'] = 'error'
 
     else:
@@ -183,9 +181,9 @@ def send_transaction_new_order(qpProvider, price, operation, trans_Id, account, 
     if not res.get('lua_error') is None:
         error = res['lua_error']
 
-    print(f"Новая заявка отправлена {operation} {price} статус ошибки: {error}")
+    print(f"{datetime.datetime.now()} - Новая заявка отправлена {operation} {price} статус ошибки: {error}")
 
-    message.send(f"Новая заявка отправлена {operation} {price} статус ошибки: {error}")
+    message.send(f"{datetime.datetime.now()} - Новая заявка отправлена {operation} {price} статус ошибки: {error}")
 
     return error
 
@@ -202,9 +200,9 @@ def send_transaction_kill_order(qpProvider, trans_Id, account, classCode, secCod
     if not res.get('lua_error') is None:
         error = res['lua_error']
 
-    print(f"Удаление заявки отправлено статус ошибки: {error}")
+    print(f"{datetime.datetime.now()} - Удаление заявки отправлено статус ошибки: {error}")
 
-    message.send(f"Удаление заявки отправлено статус ошибки: {error}")
+    message.send(f"{datetime.datetime.now()} - Удаление заявки отправлено статус ошибки: {error}")
 
     return error
 
