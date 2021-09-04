@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1622
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "TraderBot", "TraderBot\TraderBot.pyproj", "{84FCDC11-1E19-4EB8-900A-2D17EE1AFAB0}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "BollingerBandsBot", "BollingerBandsBot\BollingerBandsBot.pyproj", "{43AB75BC-251C-4D2A-9AB9-E7410DB523BD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{84FCDC11-1E19-4EB8-900A-2D17EE1AFAB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84FCDC11-1E19-4EB8-900A-2D17EE1AFAB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43AB75BC-251C-4D2A-9AB9-E7410DB523BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43AB75BC-251C-4D2A-9AB9-E7410DB523BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7659BF88-3B6E-45DD-ADEB-EEC5DBC7FC6A}
+	EndGlobalSection
+EndGlobal

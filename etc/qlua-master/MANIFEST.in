@@ -1,0 +1,4 @@
+prune .ropeproject/
+prune */.ropeproject/
+recursive-include qlua *.py *.pyi
+recursive-include qlua/conf *.conf *.cfg *.ini *.yaml *.yml

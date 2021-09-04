@@ -1,0 +1,237 @@
+#!/usr/bin/env scons
+
+import os
+import platform
+from time import mktime, strptime
+from urllib.request import urlretrieve, urlopen
+from urllib.parse import urlparse
+import zipfile
+import SCons
+from SCons.Environment import Environment
+from google import protobuf
+
+
+class URLDownload:
+    """Download file from URL."""
+    single_source = True
+    def __new__(cls):
+        return SCons.Builder.Builder(
+            action=cls.action,
+            emitter=cls.emitter,
+            source_factory=cls.URLNode,
+            target_factory=SCons.Node.FS.File,
+            single_source=cls.single_source,
+            PRINT_CMD_LINE_FUNC=cls.message,
+        )
+
+    class URLNode(SCons.Node.Python.Value):
+        """Define an own node, for checking the data behind the URL."""
+
+        def get_csig(self, calc=None):
+            """Return data of the URL header."""
+            try:
+                return self.ninfo.csig
+            except AttributeError:
+                pass
+
+            try:
+                csig = self._fetch_url_sig(str(self.value))
+                csig = SCons.Util.MD5signature(csig)
+            except Exception as err:
+                raise SCons.Errors.StopError(err)
+
+            self.get_ninfo().csig = csig
+            return csig
+
+        @staticmethod
+        def _fetch_url_sig(url, metadata=['Last-Modified', 'Content-Length']):
+            """Return signature of remote data."""
+            response = urlopen(url).info()
+            sig = [response[i] for i in metadata if i in response]
+            if not sig:
+                raise ValueError('URL signature is empty.')
+            return ' '.join(sig)
+
+    @staticmethod
+    def action(target, source, env):
+        """The download function."""
+        try:
+            urlretrieve(str(source[0]), str(target[0]))
+            # Set last modified to the downloaded file.
+            last_mod = urlopen(str(source[0])).info()['Last-Modified']
+            timestamp = mktime(strptime(last_mod, "%a, %d %b %Y %H:%M:%S GMT"))
+            os.utime(str(target[0]), (timestamp, timestamp))
+        except Exception as err:
+            raise SCons.Errors.StopError(err)
+
+
+    @staticmethod
+    def emitter(target, source, env):
+        """Defines the emitter of the builder."""
+        if not env.get("URLDOWNLOAD_USEURLFILENAME", False):
+            return target, source
+
+        try:
+            url = urlparse(str(source[0]))
+        except Exception as err:
+            raise SCons.Errors.StopError(err)
+
+        return url.path.split("/")[-1], source
+
+
+    @staticmethod
+    def message(s, target, source, env):
+        """Output message."""
+        print('Downloading [{}] to [{}] ...'.format(
+            source[0], target[0]))
+
+
+class UnZip:
+    """Extract zip file."""
+    single_source = True
+
+    def __new__(cls):
+        return SCons.Builder.Builder(
+            action=cls.action,
+            single_source=cls.single_source,
+            PRINT_CMD_LINE_FUNC=cls.message,
+            source_factory=SCons.Node.FS.File,
+            target_factory=SCons.Node.FS.Dir,
+        )
+
+    @staticmethod
+    def action(target, source, env):
+        """Unzipping source to destination dir."""
+        zipfile.ZipFile(str(source[0])).extractall(str(target[0]))
+
+    @staticmethod
+    def message(s, target, source, env):
+        """Output message."""
+        print('Unzip [{}] to [{}] ...'.format(source[0], target[0]))
+
+
+class Protobuf:
+    """Protobuf to Python compiller."""
+    def __new__(cls, src_dir):
+        return SCons.Builder.Builder(
+            action=cls.action(src_dir)
+        )
+
+    @staticmethod
+    def action(src_dir):
+        """Make Python API from proto."""
+        return ('protoc/bin/protoc --python_out=. --mypy_out=. '
+                f'--proto_path={src_dir} $SOURCE')
+
+
+class InitPy:
+    """Make __init__.py with all files imported."""
+    def __new__(cls):
+        return SCons.Builder.Builder(
+            action=cls.action,
+            single_source=False,
+            PRINT_CMD_LINE_FUNC=cls.message,
+        )
+
+    @staticmethod
+    def action(target, source, env):
+        """Making __init__.py."""
+        names = ',\n    '.join([i.name.split('.')[0] for i in source])
+        import_str = f'from . import (\n    {names},\n)'
+        names = "',\n    '".join([i.name.split('.')[0] for i in source])
+        all_str = f"__all__ = (\n    '{names}',\n)"
+        with open(str(target[0]), 'w') as file:
+            file.writelines(import_str)
+            file.writelines('\n\n')
+            file.writelines(all_str)
+
+    @staticmethod
+    def message(s, target, source, env):
+        """Output message."""
+        print('Generation [{}] ...'.format(target[0]))
+
+
+class InitPyi:
+    """Make __init__.pyi"""
+    def __new__(cls):
+        return SCons.Builder.Builder(
+            action=cls.action,
+            single_source=False,
+            PRINT_CMD_LINE_FUNC=cls.message,
+        )
+
+    @staticmethod
+    def action(target, source, env):
+        """Making __init__.pyi."""
+        content = 'from typing import Tuple\n\n\n__all__: Tuple[str, ...]'
+        with open(str(target[0]), 'w') as file:
+            file.writelines(content)
+
+    @staticmethod
+    def message(s, target, source, env):
+        """Output message."""
+        print('Generation [{}] ...'.format(target[0]))
+
+
+def get_protoc_url():
+    """Return url for protoc downloading."""
+    # Todo: Test non Linux.
+    def get_systype():
+        """Return system type string."""
+        system = platform.system()
+        if system == 'Linux':
+            return 'linux-{}'.format(platform.machine())
+        if system == 'Windows':
+            return 'win{}'.format(platform.architecture()[0][:2])
+        if system == 'Darwin':
+            return 'osx-x86_64'
+        raise SCons.Errors.StopError('Unknown platform')
+
+    system = get_systype()
+    version = protobuf.__version__
+    return ('https://github.com/protocolbuffers/protobuf/releases/download/'
+            f'v{version}/protoc-{version}-{system}.zip')
+
+
+env = Environment(
+    BUILDERS={
+        'URLDownload': URLDownload(),
+        'UnZip': UnZip(),
+        'Protobuf': Protobuf('src'),
+        'InitPy': InitPy(),
+        'InitPyi': InitPyi(),
+    },
+    ENV={
+        'PATH' : os.environ['PATH'],
+    },
+)
+env.PrependENVPath('PATH', os.path.join(os.getcwd(), 'protoc', 'bin'))
+
+env.URLDownload('protoc.zip', get_protoc_url())
+protoc = env.UnZip('protoc', 'protoc.zip')
+env.AddPostAction(
+    protoc, SCons.Script.Chmod('protoc/bin/protoc', '0755'))
+env.Clean(protoc, 'protoc')
+
+for source in env.Glob('src/qlua/rpc/*.proto'):
+    target_py = 'qlua/rpc/{}_pb2.py'.format(source.name.split('.')[0])
+    target = [target_py, f'{target_py}i']
+    env.Depends(env.Protobuf(target, source), protoc)
+
+for source in env.Glob('src/qlua/rpc/*/*.proto'):
+    target_py = 'qlua/rpc/{}{}_pb2.py'.format(
+        source.get_dir().dirname, source.name.split('.')[0])
+    target = [target_py, f'{target_py}i']
+    env.Depends(env.Protobuf(target, source), protoc)
+
+env.InitPy('qlua/rpc/__init__.py',
+           env.Glob('qlua/rpc/*.py', exclude=['qlua/rpc/__init__.py',
+                                              'qlua/rpc/__pycache__']))
+env.InitPyi('qlua/rpc/__init__.pyi', 'qlua/rpc/__init__.py')
+
+for source in env.Glob('qlua/rpc/*',
+                       exclude=['qlua/rpc/*.*', 'qlua/rpc/__pycache__']):
+    env.InitPy(f'{source}/__init__.py',
+               env.Glob(f'{source}/*.py', exclude=[f'{source}/__init__.py',
+                                                   f'{source}/__pycache__']))
+    env.InitPyi(f'{source}/__init__.pyi', f'{source}/__init__.py')
