@@ -117,7 +117,10 @@ def get_offer(transact_id):
 def get_offers():
     cur = con.cursor()
 
-    cur.execute("select *, rowid from offers order by dt desc")
+    dt1 = datetime.datetime.now().replace(hour=0, minute=0, second=0)
+    dt2 = datetime.datetime.now().replace(hour=23, minute=59, second=59)
+
+    cur.execute("select *, rowid from offers where dt>=? and dt<=? order by dt desc", (dt_to_sql(dt1), dt_to_sql(dt2)))
 
     res = cur.fetchall()
     if not res is None:
