@@ -8,6 +8,11 @@ chat_ids = ["394065692", "1645866182"]
 
 bot = telebot.TeleBot(telebot_token, parse_mode=None)
 
+STOP_TRADE = False
+CLOSE_ALL = False
+TAKE = False
+MESSAGE = True
+
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
@@ -15,9 +20,29 @@ def send_welcome(message):
 
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
-    bot.reply_to(message, 'buy')
+    global STOP_TRADE
+    global CLOSE_ALL
+    global MESSAGE
+
+    if message.text.lower()=='stop_trade':
+        STOP_TRADE = True
+
+    elif message.text.lower()=='start_trade':
+        STOP_TRADE = False
+
+    elif message.text.lower()=='take':
+        TAKE = True
+    elif message.text.lower()=='message':
+        MESSAGE = not MESSAGE
+
+    bot.reply_to(message, 'ok')
 
 def send(message):
+    global MESSAGE
+
+    if MESSAGE:
+        return
+
     for c_id in chat_ids:
         pass
         bot.send_message(c_id, message)
