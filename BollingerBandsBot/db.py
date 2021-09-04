@@ -114,6 +114,19 @@ def get_offer(transact_id):
 
     return res
 
+def get_offers():
+    cur = con.cursor()
+
+    cur.execute("select *, rowid from offers order by dt desc")
+
+    res = cur.fetchall()
+    if not res is None:
+        for r in res:
+            r['dt'] = sql_to_dt(r['dt'])
+            r['add_data'] = json.loads(r['add_data'])
+
+    return res
+
 def get_last_offer(status=None):
     cur = con.cursor()
 
