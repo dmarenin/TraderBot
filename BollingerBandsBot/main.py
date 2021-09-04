@@ -112,7 +112,7 @@ def do_loop(qpProvider):
         if last_bb_data_close['lower_line']>=first_offer:
             offers.add_offer(qpProvider, last_bb_data['lower_line'], first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode)
 
-        elif take > 0:
+        elif take>0:
             if take<=last_bid:
                 offers.add_offer(qpProvider, last_bid, take, 'S', bb_data, price_data, _quotes, account, classCode, secCode)
 
