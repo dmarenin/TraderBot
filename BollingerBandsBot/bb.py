@@ -25,12 +25,12 @@ def get_data(qpProvider):
     for x in data:
         d = {}
 
-        #d['datetime'] = datetime.datetime(x['datetime']['year'],
-        #                                  x['datetime']['month'],
-        #                                  x['datetime']['day'],
-        #                                  x['datetime']['hour'],
-        #                                  x['datetime']['min'],
-        #                                  x['datetime']['sec'])
+        d['datetime'] = datetime.datetime(x['datetime']['year'],
+                                          x['datetime']['month'],
+                                          x['datetime']['day'],
+                                          x['datetime']['hour'],
+                                          x['datetime']['min'],
+                                          x['datetime']['sec'])
 
         d['lower_line'] = int(x['open'])
 
