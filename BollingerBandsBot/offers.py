@@ -71,6 +71,9 @@ def update(data):
 
         db.update_offer(offer)
 
+    elif offer['type']=='S':
+        print('update')
+
 
     #while offers_update!=False:
     #    time.sleep(0.2)
