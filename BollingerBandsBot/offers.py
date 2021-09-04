@@ -14,14 +14,14 @@ def garbage_collect(qpProvider, account, classCode, secCode):
 
     status = last_offer['status']
     if status=='new':
-        if (datetime.datetime.now()-last_offer['dt']).seconds>30:
+        if (datetime.datetime.now()-last_offer['dt']).seconds>15:
             last_offer['send_res'] = last_offer['send_res']+'; '+'Смена статуса с new на cancel'
             last_offer['status'] ='cancel'
 
             db.update_offer(last_offer)
 
     elif status=='accept':
-        if (datetime.datetime.now()-last_offer['dt']).seconds>30:
+        if (datetime.datetime.now()-last_offer['dt']).seconds>15:
             last_offer['send_res'] = last_offer['send_res']+'; '+'Смена статуса с accept на cancel'
             last_offer['status'] ='cancel'
 
@@ -49,7 +49,7 @@ def garbage_collect(qpProvider, account, classCode, secCode):
     message.send(f"{datetime.datetime.now()} - Смена статуса {status} - {last_offer['status']}")
 
 def update(data):
-    trans_Id = data['data']['trans_id']
+    trans_Id = int(data['data']['trans_id'])
 
     offer = get_offer_by_transact_id(trans_Id)
 
