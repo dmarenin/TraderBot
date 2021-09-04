@@ -1,16 +1,15 @@
 import telebot
 import _thread
 import datetime
+import offers
 
 
 telebot_token = "1659656121:AAHPAmDqXB6o5j9EsXooxjBiPAKp4yCcuw8"
-chat_ids = ["394065692", "1645866182"]
+chat_ids = ["394065692"] #, "1645866182"]
 
 bot = telebot.TeleBot(telebot_token, parse_mode=None)
 
-STOP_TRADE = False
-CLOSE_ALL = False
-TAKE = False
+TRADE = True
 MESSAGE = True
 
 
@@ -20,31 +19,31 @@ def send_welcome(message):
 
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
-    global STOP_TRADE
-    global CLOSE_ALL
+    global TRADE
     global MESSAGE
 
-    if message.text.lower()=='stop_trade':
-        STOP_TRADE = True
+    res = 'ok'
 
-    elif message.text.lower()=='start_trade':
-        STOP_TRADE = False
+    if message.text.lower()=='trade':
+        TRADE = not TRADE
+        res = TRADE
 
-    elif message.text.lower()=='take':
-        TAKE = True
     elif message.text.lower()=='message':
         MESSAGE = not MESSAGE
+        res = MESSAGE
 
-    bot.reply_to(message, 'ok')
+    elif message.text.lower()=='profits':
+        res = offers.profits()
+
+    bot.reply_to(message, res)
 
 def send(message):
     global MESSAGE
 
-    if MESSAGE:
+    if not MESSAGE:
         return
 
     for c_id in chat_ids:
-        pass
         bot.send_message(c_id, message)
 
 def start():
