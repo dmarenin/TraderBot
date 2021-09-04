@@ -10,7 +10,7 @@ def dict_factory(cursor, row):
     return d
 
 
-con = sqlite3.connect('db.db')
+con = sqlite3.connect('db.db', check_same_thread=False)
 
 con.row_factory = dict_factory
 
@@ -120,7 +120,7 @@ def get_offers():
     dt1 = datetime.datetime.now().replace(hour=0, minute=0, second=0)
     dt2 = datetime.datetime.now().replace(hour=23, minute=59, second=59)
 
-    cur.execute("select *, rowid from offers where dt>=? and dt<=? order by dt desc", (dt_to_sql(dt1), dt_to_sql(dt2)))
+    cur.execute("select *, rowid from offers where dt>=? and dt<=? order by dt asc", (dt_to_sql(dt1), dt_to_sql(dt2)))
 
     res = cur.fetchall()
     if not res is None:
