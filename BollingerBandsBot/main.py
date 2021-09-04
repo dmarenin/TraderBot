@@ -50,8 +50,8 @@ def do_loop(qpProvider):
 
     while True:
         time.sleep(1)
-        while message.STOP_TRADE:
-            time.sleep(15)
+        while not message.TRADE:
+            time.sleep(5)
 
         start_time = time.time()
 
@@ -103,8 +103,12 @@ def do_loop(qpProvider):
 
         #offers.get_offers()
 
-        print("--- %s seconds step1 ---" % round((time.time() - start_time), 4))
+        step1 = round((time.time() - start_time), 4)
+
+        print(f"--- {step1}s seconds step1 ---" )
         print('')
+
+        db.log('step1', step1)
 
         continue
         ####
@@ -122,25 +126,29 @@ def do_loop(qpProvider):
         #    offers.close_all()
         #    message.CLOSE_ALL = False
 
-        print("--- %s seconds step2 ---" % round((time.time() - start_time), 4))
+        step2 = round((time.time() - start_time), 4)
+
+        print(f"--- {step2}s seconds step1 ---" )
+        print('')
+        db.log('step2', step2)
 
     pass
 
 def main():
     qpProvider = QuikPy(Host='localhost')
 
-    #qpProvider.GetQuoteLevel2(classCode, secCode)
-    #qpProvider.OnQuote = set_quotes
-    #qpProvider.SubscribeLevel2Quotes(classCode, secCode)
+    qpProvider.GetQuoteLevel2(classCode, secCode)
+    qpProvider.OnQuote = set_quotes
+    qpProvider.SubscribeLevel2Quotes(classCode, secCode)
 
-    #qpProvider.OnTransReply = on_trans_reply
-    #qpProvider.OnOrder = on_order
-    #qpProvider.OnTrade = on_trade
+    qpProvider.OnTransReply = on_trans_reply
+    qpProvider.OnOrder = on_order
+    qpProvider.OnTrade = on_trade
     qpProvider.OnFuturesClientHolding = on_futures_client_holding
-    #qpProvider.OnDepoLimit = on_depo_limit
-    #qpProvider.OnDepoLimitDelete = on_depo_limit_delete
+    qpProvider.OnDepoLimit = on_depo_limit
+    qpProvider.OnDepoLimitDelete = on_depo_limit_delete
 
-    #time.sleep(5)
+    time.sleep(5)
 
     message.init()
 
