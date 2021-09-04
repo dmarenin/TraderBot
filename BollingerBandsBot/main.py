@@ -101,6 +101,7 @@ def do_loop(qpProvider):
         #    message.CLOSE_ALL = False
 
         print("--- %s seconds step1 ---" % round((time.time() - start_time), 4))
+        print('')
 
         continue
 
