@@ -24,6 +24,12 @@
     <Compile Include="bb.py" />
     <Compile Include="main.py" />
     <Compile Include="message.py" />
+    <Compile Include="db.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="offers.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="price.py" />
     <Compile Include="QuikPy.py" />
   </ItemGroup>
