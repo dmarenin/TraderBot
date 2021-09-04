@@ -1,5 +1,6 @@
 import telebot
 import _thread
+import datetime
 
 
 telebot_token = "1659656121:AAHPAmDqXB6o5j9EsXooxjBiPAKp4yCcuw8"
@@ -23,6 +24,7 @@ def send(message):
 
 def start():
     bot.polling()
+    message.send(f"{datetime.datetime.now()} start")
 
 def init():
     _thread.start_new_thread(start, () )
