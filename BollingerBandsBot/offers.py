@@ -15,14 +15,14 @@ def garbage_collect(qpProvider, account, classCode, secCode):
     status = last_offer['status']
     if status=='new':
         if (datetime.datetime.now()-last_offer['dt']).seconds>30:
-            last_offer['send_res'] = last_offer['send_res']+'\n'+'Смена статуса с new на cancel'
+            last_offer['send_res'] = last_offer['send_res']+'; '+'Смена статуса с new на cancel'
             last_offer['status'] ='cancel'
 
             db.update_offer(last_offer)
 
     elif status=='accept':
         if (datetime.datetime.now()-last_offer['dt']).seconds>30:
-            last_offer['send_res'] = last_offer['send_res']+'\n'+'Смена статуса с accept на cancel'
+            last_offer['send_res'] = last_offer['send_res']+'; '+'Смена статуса с accept на cancel'
             last_offer['status'] ='cancel'
 
             trans_Id = str(random.randint(1, 100000))
@@ -39,7 +39,7 @@ def garbage_collect(qpProvider, account, classCode, secCode):
         pass
 
     elif status=='error':
-        last_offer['send_res'] = last_offer['send_res']+'\n'+'Смена статуса с error на cancel'
+        last_offer['send_res'] = last_offer['send_res']+'; '+'Смена статуса с error на cancel'
         last_offer['status'] ='cancel'
 
         db.update_offer(last_offer)
@@ -97,6 +97,9 @@ def get_last_offer():
 
 def close_all():
     print('close_all')
+
+def get_offers():
+    return db.get_offers()
 
 def get_take():
     res = get_last_offer()
