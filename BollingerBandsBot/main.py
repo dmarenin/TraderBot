@@ -88,6 +88,7 @@ def do_loop(qpProvider):
 
         take = offers.get_take()
 
+        ####
         first_offer = 180000+200
 
         offers.add_offer(qpProvider, last_bb_data['lower_line'], first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode)
@@ -100,11 +101,13 @@ def do_loop(qpProvider):
         #    offers.close_all()
         #    message.CLOSE_ALL = False
 
+        #offers.get_offers()
+
         print("--- %s seconds step1 ---" % round((time.time() - start_time), 4))
         print('')
 
         continue
-
+        ####
 
         if last_bb_data_close['lower_line']>=first_offer:
             offers.add_offer(qpProvider, last_bb_data['lower_line'], first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode)
