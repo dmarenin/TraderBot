@@ -22,6 +22,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="bb.py" />
+    <Compile Include="Examples\01 - Connect.py" />
+    <Compile Include="Examples\02 - Accounts.py" />
+    <Compile Include="Examples\03 - Ticker.py" />
+    <Compile Include="Examples\04 - Stream.py" />
+    <Compile Include="Examples\05 - Transactions.py" />
     <Compile Include="main.py" />
     <Compile Include="message.py" />
     <Compile Include="module1.py" />
@@ -30,6 +35,9 @@
     <Compile Include="QuikPy.py" />
     <Compile Include="TraderBot.py" />
     <Compile Include="__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Examples\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
