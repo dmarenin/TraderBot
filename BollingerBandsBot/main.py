@@ -74,8 +74,6 @@ def do_loop(qpProvider):
 
         db.log('quotes', _quotes)
 
-        print("--- %s seconds step1 ---" % round((time.time() - start_time), 2))
-
         #if len(_quotes)==0:
         #    continue
 
@@ -90,7 +88,7 @@ def do_loop(qpProvider):
 
         take = offers.get_take()
 
-        first_offer = 180000+2
+        first_offer = 180000+200
 
         offers.add_offer(qpProvider, last_bb_data['lower_line'], first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode)
 
@@ -101,6 +99,8 @@ def do_loop(qpProvider):
         #if message.CLOSE_ALL:
         #    offers.close_all()
         #    message.CLOSE_ALL = False
+
+        print("--- %s seconds step1 ---" % round((time.time() - start_time), 4))
 
         continue
 
@@ -118,7 +118,7 @@ def do_loop(qpProvider):
         #    offers.close_all()
         #    message.CLOSE_ALL = False
 
-        print("--- %s seconds step2 ---" % round((time.time() - start_time), 2))
+        print("--- %s seconds step2 ---" % round((time.time() - start_time), 4))
 
     pass
 
