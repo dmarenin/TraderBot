@@ -105,7 +105,19 @@ def update_offer(offer):
 def get_offer(transact_id):
     cur = con.cursor()
 
-    cur.execute("select *, rowid from offers WHERE rowid=?", (transact_id,))
+    cur.execute("select *, rowid from offers WHERE rowid=?", (int(transact_id),))
+
+    res = cur.fetchone()
+    if not res is None:
+        res['dt'] = sql_to_dt(res['dt'])
+        res['add_data'] = json.loads(res['add_data'])
+
+    return res
+
+def get_offer_by_order_num(order_num):
+    cur = con.cursor()
+
+    cur.execute("select *, rowid from offers WHERE order_num=?", (order_num,))
 
     res = cur.fetchone()
     if not res is None:
