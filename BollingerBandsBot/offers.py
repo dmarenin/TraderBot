@@ -1,13 +1,19 @@
 import datetime
 import db
 import message
+import random
+import time
 
 
-take = 200
+def get_offer_by_order_num(order_num):
+    res = db.get_offer_by_order_num(order_num)
 
+    return res
 
 def get_offer_by_transact_id(transact_id):
     res = db.get_offer(transact_id)
+
+    return res
 
 def garbage_collect(qpProvider, account, classCode, secCode):
     last_offer = get_last_offer()
@@ -21,16 +27,17 @@ def garbage_collect(qpProvider, account, classCode, secCode):
             db.update_offer(last_offer)
 
     elif status=='accept':
-        if (datetime.datetime.now()-last_offer['dt']).seconds>15:
-            last_offer['send_res'] = last_offer['send_res']+'; '+'Смена статуса с accept на cancel'
-            last_offer['status'] ='cancel'
+        pass
+        #if (datetime.datetime.now()-last_offer['dt']).seconds>15:
+        #    last_offer['send_res'] = last_offer['send_res']+'; '+'Смена статуса с accept на cancel'
+        #    last_offer['status'] ='cancel'
 
-            trans_Id = str(random.randint(1, 100000))
-            orderNum = str(last_offer['order_num'])
+        #    trans_Id = str(random.randint(1, 100000))
+        #    orderNum = str(last_offer['order_num'])
 
-            send_transaction_kill_order(qpProvider, trans_Id, account, classCode, secCode, orderNum)
+        #    #send_transaction_kill_order(qpProvider, trans_Id, account, classCode, secCode, orderNum)
 
-            db.update_offer(last_offer)
+        #    db.update_offer(last_offer)
 
     elif status=='close':
         pass
@@ -44,35 +51,82 @@ def garbage_collect(qpProvider, account, classCode, secCode):
 
         db.update_offer(last_offer)
 
-    print(f"{datetime.datetime.now()} - Смена статуса {status} - {last_offer['status']}")
+    if status!=last_offer['status']:
+        print(f"{datetime.datetime.now()} - Смена статуса {status} - {last_offer['status']}")
+        message.send(f"{datetime.datetime.now()} - Смена статуса {status} - {last_offer['status']}")
 
-    message.send(f"{datetime.datetime.now()} - Смена статуса {status} - {last_offer['status']}")
+def update_on_trade(data):
+    time.sleep(0.1)
 
-def update(data):
-    trans_Id = int(data['data']['trans_id'])
+    trans_Id = int(data['trans_id'])
 
     offer = get_offer_by_transact_id(trans_Id)
+    if offer is None:
+        return
 
-    if offer['order_num'] is None:
-        if len(data['data']['order_num'])>0:
-            offer['order_num'] = int(data['data']['order_num'])
-            db.update_offer(offer)
+    if offer['order_num']==int(data['order_num']):
+        return
 
-    if offer['type']=='B' and int(data['data']['balance'])==0:
-        if offer['order_num'] != int(data['data']['order_num']):
-            print("offer['order_num'] != int(data['data']['order_num'])")
+    offer['order_num'] = int(data['order_num'])
 
-        offer['order_num'] = int(data['data']['order_num'])
+    db.update_offer(offer)
+
+
+def update_on_trans_reply(data):
+    time.sleep(0.1)
+
+    trans_Id = int(data['trans_id'])
+
+    offer = get_offer_by_transact_id(trans_Id)
+    if offer is None:
+        return
+
+    if offer['order_num']==int(data['order_num']):
+        return
+
+    offer['order_num'] = int(data['order_num'])
+
+    db.update_offer(offer)
+
+def update_on_order(data):
+    time.sleep(0.1)
+
+    order_num = int(data['order_num'])
+
+    offer = get_offer_by_order_num(order_num)
+    if offer is None:
+        return
+
+    if int(data['balance'])==0:
         offer['status'] = 'close'
+        db.update_offer(offer)
 
         print(f"{datetime.datetime.now()} - Заявка выполнена {offer['type']} {offer['price']}")
 
         message.send(f"{datetime.datetime.now()} - Заявка выполнена {offer['type']} {offer['price']}")
 
-        db.update_offer(offer)
 
-    elif offer['type']=='S':
-        print('update')
+
+    #if offer['order_num'] is None:
+    #    if len(data['data']['order_num'])>0:
+    #        offer['order_num'] = int(data['order_num'])
+    #        db.update_offer(offer)
+
+    #if offer['type']=='B' and int(data['balance'])==0:
+    #    if offer['order_num'] != int(data['order_num']):
+    #        print("offer['order_num'] != int(data['data']['order_num'])")
+
+    #    offer['order_num'] = int(data['order_num'])
+    #    offer['status'] = 'close'
+
+    #    print(f"{datetime.datetime.now()} - Заявка выполнена {offer['type']} {offer['price']}")
+
+    #    message.send(f"{datetime.datetime.now()} - Заявка выполнена {offer['type']} {offer['price']}")
+
+    #    db.update_offer(offer)
+
+    #elif offer['type']=='S':
+    #    print('update')
 
 
     #while offers_update!=False:
@@ -120,15 +174,18 @@ def profits():
 
     return res
 
-def get_take():
+def get_take(type):
     res = get_last_offer()
 
     if res is None:
         return 0
 
-    return res['price']+take
+    if type=='long':
+        return res['price']+200
+    else:
+        return res['price']-100
 
-def add_offer(qpProvider, price, price2, type, bb_data, price_data, quotes, account, classCode, secCode):
+def add_offer(qpProvider, price, price2, type, bb_data, price_data, quotes, account, classCode, secCode, balance, branch):
     last_offer = get_last_offer()
 
     status_close = ['close', 'cancel']
@@ -137,12 +194,21 @@ def add_offer(qpProvider, price, price2, type, bb_data, price_data, quotes, acco
         if not last_offer['status'] in status_close:
             return
 
-        if type==last_offer['type']:
+        if type==last_offer['type'] and balance!=0: #проверка на конечный остаток и заявка выполнена, если 0 то можно делать sbb, bss
             return
 
+    #else:
+    #    if type=='S':
+    #        return
+
+    if type=='S':
+        if last_offer['type']=='B':
+            if last_offer['status']=='cancel':
+                return
     else:
-        if type=='S':
-            return
+        if last_offer['type']=='S':
+            if last_offer['status']=='cancel':
+                return
 
     offer = {}
     offer['dt'] = datetime.datetime.now()
@@ -168,6 +234,8 @@ def add_offer(qpProvider, price, price2, type, bb_data, price_data, quotes, acco
         offer['rowid'] = transact_id
         offer['transact_id'] = transact_id
 
+        db.update_offer(offer)
+
         price = str(round(int(price), -1))
         transact_id = str(transact_id)
         offer['status'] = 'accept'
@@ -178,7 +246,9 @@ def add_offer(qpProvider, price, price2, type, bb_data, price_data, quotes, acco
         if len(send_res)>0:
            offer['status'] = 'error'
 
-    db.update_offer(offer)
+        las_status_offer = get_offer_by_transact_id(offer['rowid'])
+        if not las_status_offer['status']=='close':
+            db.update_offer(offer)
 
 def send_transaction_new_order(qpProvider, price, operation, trans_Id, account, classCode, secCode):
     transaction = {'TRANS_ID': trans_Id,
