@@ -11,6 +11,7 @@ bot = telebot.TeleBot(telebot_token, parse_mode=None)
 
 TRADE = True
 MESSAGE = True
+RESULTS = []
 
 
 @bot.message_handler(commands=['start', 'help'])
@@ -21,6 +22,7 @@ def send_welcome(message):
 def echo_all(message):
     global TRADE
     global MESSAGE
+    global RESULTS
 
     res = 'ok'
 
@@ -32,8 +34,10 @@ def echo_all(message):
         MESSAGE = not MESSAGE
         res = MESSAGE
 
-    elif message.text.lower()=='profits':
-        res = offers.profits()
+    elif message.text.lower()=='results':
+        res = 0
+        for r in RESULTS:
+            res = res + r['varmargin']
 
     bot.reply_to(message, res)
 
@@ -44,11 +48,14 @@ def send(message):
         return
 
     for c_id in chat_ids:
-        bot.send_message(c_id, message)
+        try:
+            bot.send_message(c_id, message)
+        except:
+            print('send_message failed')
 
 def start():
     bot.polling()
-    message.send(f"{datetime.datetime.now()} start")
+    #message.send(f"{datetime.datetime.now()} start")
 
 def init():
     _thread.start_new_thread(start, () )
