@@ -55,7 +55,7 @@ def do_loop(qpProvider):
     global QUOTES
 
     while True:
-        time.sleep(2)
+        time.sleep(1.2)
         while not message.TRADE:
             time.sleep(5)
 
@@ -77,6 +77,8 @@ def do_loop(qpProvider):
                     continue
                 balance = f['todaybuy']-f['todaysell']
                 break
+
+        message.RESULTS = futures_holdings
 
         db.log('quotes', _quotes)
 
@@ -112,34 +114,43 @@ def do_loop(qpProvider):
         db.log('step1', step1)
 
         if balance<0:
-            #Открыт шорт
-            pass
+            take = offers.get_take('short')
+            if take>=first_offer:
+                offers.add_offer(qpProvider, take, first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short')
+
         elif balance>0:
-            #Открыт лонг
-            pass
+             take = offers.get_take('long')
+             if take<=last_bid:
+                 offers.add_offer(qpProvider, take, last_bid, 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long')
         else:
             #Нет открытых позиций
-            pass
+            if first_offer>last_bb_data_close['medium_line']:
+                if last_bb_data_close['upper_line']<=last_bid:
+                    offers.add_offer(qpProvider, last_bid, last_bb_data['upper_line'], 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short')
+            else:
+                if last_bb_data_close['lower_line']>=first_offer:
+                    offers.add_offer(qpProvider, last_bb_data['lower_line'], first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long')
 
 
-        if first_offer>last_bb_data_close['medium_line']:
-            take = offers.get_take('short')
-            if last_bb_data_close['upper_line']<=last_bid and balance==0:
-                offers.add_offer(qpProvider, last_bb_data['upper_line'], last_bid, 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short')
 
-            elif take>0 and balance!=0:
-                if take>=first_offer:
-                    offers.add_offer(qpProvider, take, first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short')
+        #if first_offer>last_bb_data_close['medium_line']:
+        #    take = offers.get_take('short')
+        #    if last_bb_data_close['upper_line']<=last_bid and balance==0:
+        #        offers.add_offer(qpProvider, last_bb_data['upper_line'], last_bid, 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short')
 
-        else:
-            take = offers.get_take('long')
+        #    elif take>0 and balance!=0:
+        #        if take>=first_offer:
+        #            offers.add_offer(qpProvider, take, first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short')
 
-            if last_bb_data_close['lower_line']>=first_offer and balance==0:
-                offers.add_offer(qpProvider, last_bb_data['lower_line'], first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long')
+        #else:
+        #    take = offers.get_take('long')
 
-            elif take>0 and balance!=0:
-                if take<=last_bid:
-                    offers.add_offer(qpProvider, take, last_bid, 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long')
+        #    if last_bb_data_close['lower_line']>=first_offer and balance==0:
+        #        offers.add_offer(qpProvider, last_bb_data['lower_line'], first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long')
+
+        #    elif take>0 and balance!=0:
+        #        if take<=last_bid:
+        #            offers.add_offer(qpProvider, take, last_bid, 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long')
 
         offers.garbage_collect(qpProvider, account, classCode, secCode)
 
@@ -162,10 +173,10 @@ def main():
 
     qpProvider.OnTransReply = on_trans_reply
     qpProvider.OnOrder = on_order
-    qpProvider.OnTrade = on_trade
+    #qpProvider.OnTrade = on_trade
     #qpProvider.OnFuturesClientHolding = on_futures_client_holding
-    qpProvider.OnDepoLimit = on_depo_limit
-    qpProvider.OnDepoLimitDelete = on_depo_limit_delete
+    #qpProvider.OnDepoLimit = on_depo_limit
+    #qpProvider.OnDepoLimitDelete = on_depo_limit_delete
 
     time.sleep(5)
 
