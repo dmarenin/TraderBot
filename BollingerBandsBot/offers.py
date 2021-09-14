@@ -102,6 +102,9 @@ def update_on_order(data):
     if offer is None:
         return
 
+    if offer['status']=='close':
+        return
+
     if int(data['balance'])==0:
         offer['status'] = 'close'
         db.update_offer(offer)
