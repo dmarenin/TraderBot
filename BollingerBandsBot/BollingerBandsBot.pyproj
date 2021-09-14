@@ -30,6 +30,7 @@
     <Compile Include="offers.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="volume.py" />
     <Compile Include="price.py" />
     <Compile Include="QuikPy.py" />
   </ItemGroup>
