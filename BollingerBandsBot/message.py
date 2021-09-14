@@ -2,10 +2,12 @@ import telebot
 import _thread
 import datetime
 import offers
+import pyautogui
+import io
 
 
 telebot_token = "1659656121:AAHPAmDqXB6o5j9EsXooxjBiPAKp4yCcuw8"
-chat_ids = ["394065692"] #, "1645866182"]
+chat_ids = ["394065692, 1645866182"]
 
 bot = telebot.TeleBot(telebot_token, parse_mode=None)
 
@@ -37,9 +39,25 @@ def echo_all(message):
     elif message.text.lower()=='results':
         res = 0
         for r in RESULTS:
-            res = res + r['varmargin']
+            res = res + r['total_varmargin'] + r['varmargin']
 
-    bot.reply_to(message, res)
+    elif message.text.lower()=='screen':
+        try:
+            myScreenshot = pyautogui.screenshot()
+            myScreenshot.save(r'screen.png')
+        except:
+            return
+
+        file_data = open('screen.png', 'rb')
+        try:
+            bot.send_document(message.chat.id, file_data)
+        except:
+            print('send_document failed')
+
+    try:
+        bot.reply_to(message, res)
+    except:
+        print('reply_to failed')
 
 def send(message):
     global MESSAGE
