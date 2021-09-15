@@ -17,6 +17,7 @@ firmId = 'SPBFUT'
 classCode = 'SPBFUT'
 secCode = 'RIU1'
 account = 'SPBFUT12wA8'
+multiplicity = -1
 
 QUOTES = []
 
@@ -116,10 +117,10 @@ def do_loop(qpProvider):
         last_bb_data_close = bb_data[-2]
         last_price_data_close = price_data[-2]
 
-        last_bid = int(_quotes['bid'][-1]['price'])
+        last_bid = float(_quotes['bid'][-1]['price'])
         #db.log('last_bid', last_bid)
 
-        first_offer = int(_quotes['offer'][0]['price'])
+        first_offer = float(_quotes['offer'][0]['price'])
         #db.log('first_offer', first_offer)
 
         #step1 = round((time.time() - start_time), 4)
@@ -128,25 +129,27 @@ def do_loop(qpProvider):
 
         #balance = balance+1
 
+
+
         if balance<0:
             continue
             take = offers.get_take('short')
             if take>=first_offer:
-                offers.add_offer(qpProvider, take, first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short')
+                offers.add_offer(qpProvider, take, first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short', multiplicity)
 
         elif balance>0:
              take = offers.get_take('long')
              if take<=last_bid:
-                 offers.add_offer(qpProvider, take, last_bid, 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long')
+                 offers.add_offer(qpProvider, take, last_bid, 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long', multiplicity)
         else:
             #Нет открытых позиций
             if first_offer>last_bb_data_close['medium_line']:
                 continue
                 if last_bb_data_close['upper_line']<=last_bid:
-                    offers.add_offer(qpProvider, last_bid, last_bb_data['upper_line'], 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short')
+                    offers.add_offer(qpProvider, last_bid, last_bb_data['upper_line'], 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short', multiplicity)
             else:
                 if last_bb_data_close['lower_line']>=first_offer:
-                    offers.add_offer(qpProvider, last_bb_data['lower_line'], first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long')
+                    offers.add_offer(qpProvider, last_bb_data['lower_line'], first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long', multiplicity)
 
 
 

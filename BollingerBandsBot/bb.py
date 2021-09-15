@@ -39,12 +39,12 @@ def get_data(qpProvider):
     data = qpProvider.GetCandles(tag, upper_line, start_candles, 0)
     data = data['data']
     for i, x in enumerate(data):
-        bb_candles[i]['upper_line'] = int(x['open'])
+        bb_candles[i]['upper_line'] = x['open']
 
     data = qpProvider.GetCandles(tag, medium_line, start_candles, 0)
     data = data['data']
     for i, x in enumerate(data):
-        bb_candles[i]['medium_line'] = int(x['open'])
+        bb_candles[i]['medium_line'] = x['open']
 
     return bb_candles
 

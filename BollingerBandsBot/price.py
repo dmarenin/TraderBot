@@ -26,11 +26,11 @@ def get_data(qpProvider):
                                           x['datetime']['min'],
                                           x['datetime']['sec'])
 
-        x['close'] = int(x['close'])
-        x['high'] = int(x['high'])
-        x['low'] = int(x['low'])
-        x['open'] = int(x['open'])
-        x['volume'] = int(x['volume'])
+        x['close'] = x['close']
+        x['high'] = x['high']
+        x['low'] = x['low']
+        x['open'] = x['open']
+        x['volume'] = x['volume']
 
         price_candles.append(x)
 

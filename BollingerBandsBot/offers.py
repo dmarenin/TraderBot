@@ -193,7 +193,7 @@ def get_take(type):
     else:
         return res['price']-100
 
-def add_offer(qpProvider, price, price2, type, bb_data, price_data, quotes, account, classCode, secCode, balance, branch):
+def add_offer(qpProvider, price, price2, type, bb_data, price_data, quotes, account, classCode, secCode, balance, branch, multiplicity):
     last_offer = get_last_offer()
 
     status_close = ['close', 'cancel']
@@ -244,7 +244,7 @@ def add_offer(qpProvider, price, price2, type, bb_data, price_data, quotes, acco
 
         db.update_offer(offer)
 
-        price = str(round(int(price), -1))
+        price = str(round(price, multiplicity))
         transact_id = str(transact_id)
         #offer['status'] = 'accept'
 
