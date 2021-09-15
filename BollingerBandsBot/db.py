@@ -14,8 +14,7 @@ con = sqlite3.connect('db.db', check_same_thread=False)
 
 con.row_factory = dict_factory
 
-con.execute('pragma journal_mode = WAL')
-con.execute('pragma synchronous = normal')
+con.execute('pragma journal_mode = truncate')
 con.execute('pragma synchronous = normal')
 con.execute('pragma temp_store = memory')
 con.execute('pragma mmap_size = 30000000000')
