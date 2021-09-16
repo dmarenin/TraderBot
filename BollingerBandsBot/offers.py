@@ -217,12 +217,16 @@ def add_offer(qpProvider, price, price2, type, bb_data, price_data, quotes, acco
         if last_offer['type']=='S':
             if last_offer['status']=='cancel':
                 return
+    if multiplicity<=0:
+        price = str(int(price))
+    else:
+        price = str(round(price, multiplicity))
 
     offer = {}
     offer['dt'] = datetime.datetime.now()
     offer['type'] = type
     offer['price'] = price
-    offer['price2'] = price2
+    offer['price2'] = round(price2, multiplicity)
     offer['add_data'] = {'bb_data':bb_data,
                          'price_data':price_data,
                          'price_data':price_data,
@@ -244,7 +248,6 @@ def add_offer(qpProvider, price, price2, type, bb_data, price_data, quotes, acco
 
         db.update_offer(offer)
 
-        price = str(round(price, multiplicity))
         transact_id = str(transact_id)
         #offer['status'] = 'accept'
 
