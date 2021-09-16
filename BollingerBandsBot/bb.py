@@ -32,7 +32,7 @@ def get_data(qpProvider):
                                           x['datetime']['min'],
                                           x['datetime']['sec'])
 
-        d['lower_line'] = int(x['open'])
+        d['lower_line'] = x['open']
 
         bb_candles.append(d)
 
