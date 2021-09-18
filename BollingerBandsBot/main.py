@@ -15,7 +15,7 @@ import volume
 
 firmId = 'SPBFUT'
 classCode = 'SPBFUT'
-secCode = 'RIU1'
+secCode = 'RIZ1'
 account = 'SPBFUT12wA8'
 multiplicity = -1
 
@@ -48,6 +48,9 @@ def on_depo_limit_delete(data):
 
 
 def set_quotes(data):
+    if data['data']['sec_code']!=secCode:
+        return
+
     global QUOTES
 
     QUOTES = data['data']
@@ -129,7 +132,13 @@ def do_loop(qpProvider):
 
         #balance = balance+1
 
+        #print(first_offer)
 
+        #print(last_bb_data_close['lower_line'])
+
+        last_bb_data_close_lower_line = round(last_bb_data_close['lower_line'], multiplicity)
+        first_offer = round(first_offer, multiplicity)
+        last_bid = round(last_bid, multiplicity)
 
         if balance<0:
             continue
@@ -139,6 +148,8 @@ def do_loop(qpProvider):
 
         elif balance>0:
              take = offers.get_take('long')
+             take = round(take, 2)
+
              if take<=last_bid:
                  offers.add_offer(qpProvider, take, last_bid, 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long', multiplicity)
         else:
@@ -148,8 +159,8 @@ def do_loop(qpProvider):
                 if last_bb_data_close['upper_line']<=last_bid:
                     offers.add_offer(qpProvider, last_bid, last_bb_data['upper_line'], 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short', multiplicity)
             else:
-                if last_bb_data_close['lower_line']>=first_offer:
-                    offers.add_offer(qpProvider, last_bb_data['lower_line'], first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long', multiplicity)
+                if last_bb_data_close_lower_line>=first_offer:
+                    offers.add_offer(qpProvider, first_offer, last_bb_data_close_lower_line, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long', multiplicity)
 
 
 
