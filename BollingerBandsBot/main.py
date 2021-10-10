@@ -58,8 +58,12 @@ def set_quotes(data):
 def do_loop(qpProvider):
     global QUOTES
 
+    data = qpProvider.GetFuturesLimit(firmId, account, 0, "SUR")
+
+    db.balance(data['data'])
+
     while True:
-        time.sleep(1.5)
+        time.sleep(0.25)
         while not message.TRADE:
             time.sleep(5)
 
@@ -75,22 +79,46 @@ def do_loop(qpProvider):
         if _quotes.get('bid') is None:
             continue
 
-        db.log('quotes', _quotes)
+        #db.log('quotes', _quotes)
 
-        count_bid = 0
-        for c in _quotes['bid']:
-            count_bid += int(c['quantity'])
+        #count_bid = 0
+        #volume_bid = 0
+        #for c in _quotes['bid']:
+        #    count_bid += int(c['quantity'])
+        #    volume_bid +=  int(c['quantity'])*int(c['price'])
 
-        count_offer = 0
-        for c in _quotes['offer']:
-            count_offer += int(c['quantity'])
+        #count_offer = 0
+        #volume_offer = 0
+        #for c in _quotes['offer']:
+        #    count_offer += int(c['quantity'])
+        #    volume_offer +=  int(c['quantity'])*int(c['price'])
 
-        if count_offer>count_bid:
-            print('up')
-        else:
-            print('down')
+        #volume_all = volume_offer+volume_bid
+
+        #volume_all_perc = volume_all/100
+
+        #volume_offer_perc = volume_offer/volume_all_perc
+        #volume_bid_perc = volume_bid/volume_all_perc
+
+        ##print(f"volume_offer_perc {volume_offer_perc}")
+
+        ##print(f"volume_bid_perc {volume_bid_perc}")
+
+        #if count_offer>count_bid:
+        #    print('up')
+        #else:
+        #    print('down')
+
+        #print(f"volume_offer {volume_offer}")
+        #print(f"volume_bid {volume_bid}")
+
+        #delta = volume_offer-volume_bid
+
+        #print(f"delta {delta}")
 
         #orders = qpProvider.GetAllOrders()['data']
+
+        #continue
 
         balance = 0
 
@@ -105,7 +133,11 @@ def do_loop(qpProvider):
 
         message.RESULTS = futures_holdings
 
-        bb_data = bb.get_data(qpProvider)
+        try:
+            bb_data = bb.get_data(qpProvider)
+        except:
+            continue
+
         #db.log('bb_data', bb_data)
 
         price_data = price.get_data(qpProvider)
@@ -140,13 +172,17 @@ def do_loop(qpProvider):
         first_offer = round(first_offer, multiplicity)
         last_bid = round(last_bid, multiplicity)
 
-        if balance<0:
-            continue
-            take = offers.get_take('short')
-            if take>=first_offer:
-                offers.add_offer(qpProvider, take, first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short', multiplicity)
+        #balance = balance+1
 
-        elif balance>0:
+        #if balance<0:
+        #    continue
+        #    take = offers.get_take('short')
+        #    if take>=first_offer:
+        #        offers.add_offer(qpProvider, take, first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short', multiplicity)
+
+        #balance = balance+1
+
+        if balance>0:
              take = offers.get_take('long')
              take = round(take, 2)
 
