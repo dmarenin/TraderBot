@@ -65,11 +65,16 @@ def send(message):
     if not MESSAGE:
         return
 
-    for c_id in chat_ids:
-        try:
-            bot.send_message(c_id, message)
-        except:
-            print('send_message failed')
+    while range(0, 4):
+        send_succes = False
+        for c_id in chat_ids:
+            try:
+                bot.send_message(c_id, message)
+                send_succes = True
+            except:
+                print('send_message failed')
+        if send_succes:
+            break
 
 def start():
     bot.polling()
