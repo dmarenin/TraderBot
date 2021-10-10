@@ -31,6 +31,16 @@ def dt_to_sql(dt):
 def sql_to_dt(dt):
     return datetime.datetime.fromtimestamp(dt/1000000)
 
+def balance(data):
+    dt = datetime.datetime.now()
+    dt = dt_to_sql(dt)
+
+    cur = con.cursor()
+
+    cur.execute("insert into balance values (?, ?, ?, ?)", (dt, data['cbplplanned'], data['accruedint'], data['cbp_prev_limit']))
+
+    con.commit()
+
 def log(event, data=None, dt=None):
     if dt is None:
         dt = datetime.datetime.now()
