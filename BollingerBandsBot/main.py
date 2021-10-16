@@ -7,6 +7,8 @@ import db
 import offers
 import datetime
 import volume
+import macd
+import datetime
 
 
 #bid покупка
@@ -63,9 +65,19 @@ def do_loop(qpProvider):
     db.balance(data['data'])
 
     while True:
-        time.sleep(0.25)
-        while not message.TRADE:
-            time.sleep(5)
+        if datetime.datetime.now().hour<9 and datetime.datetime.now().hour>2:
+            time.sleep(0.25)
+            continue
+
+        time.sleep(0.2)
+
+        #try:
+        #    macd_data = macd.get_data(qpProvider)
+        #except:
+        #    continue
+
+        #while not message.TRADE:
+        #    time.sleep(5)
 
         #start_time = time.time()
         try:
@@ -128,7 +140,7 @@ def do_loop(qpProvider):
             for f in futures_holdings:
                 if f['sec_code']!=secCode:
                     continue
-                balance = f['todaybuy']-f['todaysell']
+                balance = f['todaybuy']-f['todaysell']+f['startbuy']-f['startsell']
                 break
 
         message.RESULTS = futures_holdings
@@ -220,6 +232,8 @@ def do_loop(qpProvider):
         #            offers.add_offer(qpProvider, take, last_bid, 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long')
 
         offers.garbage_collect(qpProvider, account, classCode, secCode)
+
+
 
         #if message.CLOSE_ALL:
         #    offers.close_all()

@@ -27,6 +27,9 @@
     <Compile Include="db.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="macd.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="offers.py">
       <SubType>Code</SubType>
     </Compile>
