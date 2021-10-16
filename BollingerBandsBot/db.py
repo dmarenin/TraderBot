@@ -14,7 +14,9 @@ con = sqlite3.connect('db.db', check_same_thread=False)
 
 con.row_factory = dict_factory
 
-con.execute('pragma journal_mode = truncate')
+#con.execute('pragma journal_mode = truncate')
+con.execute('pragma journal_mode = memory')
+con.execute('pragma locking_mode = exclusive')
 con.execute('pragma synchronous = normal')
 con.execute('pragma temp_store = memory')
 con.execute('pragma mmap_size = 30000000000')
@@ -23,6 +25,7 @@ con.execute('pragma vacuum')
 con.execute('pragma optimize')
 con.execute('pragma auto_vacuum = incremental')
 con.execute('pragma incremental_vacuum')
+con.execute('pragma cache_size=500')
 
 
 def dt_to_sql(dt):
