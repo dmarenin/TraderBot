@@ -14,10 +14,12 @@ import datetime
 #bid покупка
 #offer предложение
 
+is_short = False
 
 firmId = 'SPBFUT'
 classCode = 'SPBFUT'
 secCode = 'RIZ1'
+#secCode = 'MXZ1'
 account = 'SPBFUT12wA8'
 multiplicity = -1
 
@@ -180,6 +182,7 @@ def do_loop(qpProvider):
 
         #print(last_bb_data_close['lower_line'])
 
+        last_bb_data_close_upper_line = round(last_bb_data_close['upper_line'], multiplicity)
         last_bb_data_close_lower_line = round(last_bb_data_close['lower_line'], multiplicity)
         first_offer = round(first_offer, multiplicity)
         last_bid = round(last_bid, multiplicity)
@@ -194,21 +197,41 @@ def do_loop(qpProvider):
 
         #balance = balance+1
 
+
         if balance>0:
              take = offers.get_take('long')
              take = round(take, 2)
 
              if take<=last_bid:
                  offers.add_offer(qpProvider, take, last_bid, 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long', multiplicity)
+
+        elif balance<0:
+             take = offers.get_take('short')
+             take = round(take, 2)
+             if take>=first_offer:
+                 offers.add_offer(qpProvider, take, first_offer, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short', multiplicity)
         else:
-            #Нет открытых позиций
-            if first_offer>last_bb_data_close['medium_line']:
-                continue
-                if last_bb_data_close['upper_line']<=last_bid:
-                    offers.add_offer(qpProvider, last_bid, last_bb_data['upper_line'], 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short', multiplicity)
+            if is_short:
+                offers.add_offer(qpProvider, last_bid, last_bb_data_close_upper_line, 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short', multiplicity)
             else:
                 if last_bb_data_close_lower_line>=first_offer:
                     offers.add_offer(qpProvider, first_offer, last_bb_data_close_lower_line, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long', multiplicity)
+
+
+            #Нет открытых позиций
+            #if first_offer>last_bb_data_close['medium_line']:
+            #    pass
+
+            #    if last_bb_data_close_upper_line<=last_bid:
+            #        offers.add_offer(qpProvider, last_bid, last_bb_data_close_upper_line, 'S', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'short', multiplicity)
+            
+
+
+            #else:
+            #    if last_bb_data_close_lower_line>=first_offer:
+            #        offers.add_offer(qpProvider, first_offer, last_bb_data_close_lower_line, 'B', bb_data, price_data, _quotes, account, classCode, secCode, balance, 'long', multiplicity)
+
+
 
 
 

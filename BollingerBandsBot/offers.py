@@ -189,9 +189,9 @@ def get_take(type):
         return 0
 
     if type=='long':
-        return res['price']+200
+        return res['price']+350
     else:
-        return res['price']-100
+        return res['price']-50
 
 def add_offer(qpProvider, price, price2, type, bb_data, price_data, quotes, account, classCode, secCode, balance, branch, multiplicity):
     last_offer = get_last_offer()
