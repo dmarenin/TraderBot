@@ -7,6 +7,10 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "TraderBot", "TraderBot\Trad
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "BollingerBandsBot", "BollingerBandsBot\BollingerBandsBot.pyproj", "{43AB75BC-251C-4D2A-9AB9-E7410DB523BD}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "OpenInterest", "OpenInterest\OpenInterest.pyproj", "{0DF76311-DA63-48A6-869D-6AA5395A2A32}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Scalper", "Scalper\Scalper.pyproj", "{1957C3E7-6C5E-4A51-AA57-3137D6143B59}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,6 +21,10 @@ Global
 		{84FCDC11-1E19-4EB8-900A-2D17EE1AFAB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43AB75BC-251C-4D2A-9AB9-E7410DB523BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{43AB75BC-251C-4D2A-9AB9-E7410DB523BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DF76311-DA63-48A6-869D-6AA5395A2A32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DF76311-DA63-48A6-869D-6AA5395A2A32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1957C3E7-6C5E-4A51-AA57-3137D6143B59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1957C3E7-6C5E-4A51-AA57-3137D6143B59}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
