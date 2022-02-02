@@ -57,11 +57,13 @@ def do_loop(qpProvider):
     data = qpProvider.GetFuturesLimit(firmId, account, 0, "SUR")
 
     last_type_order = None #0-B, 1-S
-    take_profit = 50
-    stop_loss = 50
+    take_profit = 150
+    stop_loss = 100
 
     while True:
         time.sleep(0.5)
+
+        futures_holdings = qpProvider.GetFuturesHoldings()
 
         try:
             _quotes = QUOTES.copy()
@@ -74,7 +76,31 @@ def do_loop(qpProvider):
         if _quotes.get('bid') is None:
             continue
 
+        #futures_holdings = qpProvider.GetFuturesHoldings()
+
         orders = qpProvider.GetAllOrders()['data']
+
+        if orders[len(orders)-1]['flags'] in [29, 25]:
+            x = orders[len(orders)-1]
+            if x['flags'] in [29, 25]:
+                dt = datetime.datetime(x['datetime']['year'],
+                                          x['datetime']['month'],
+                                          x['datetime']['day'],
+                                          x['datetime']['hour'],
+                                          x['datetime']['min'],
+                                          x['datetime']['sec'])
+
+                dt = dt + datetime.timedelta(hours=2)
+
+                if (datetime.datetime.now()-dt).seconds>5:
+                    offers.send_transaction_kill_order(qpProvider, str(x['trans_id']), account, classCode, secCode, str(x['order_num']))
+
+                    #if last_type_order==0:
+                    #    last_type_order = 1
+                    #else:
+                    #    last_type_order = 0
+
+            continue
 
         last_price = 0
 
@@ -85,22 +111,20 @@ def do_loop(qpProvider):
             last_price = i['price']
             break
 
-        if orders[len(orders)-1]['flags'] in [29, 25]:
-            x = orders[len(orders)-1]
-
-            dt = datetime.datetime(x['datetime']['year'],
+        #if orders[len(orders)-1]['flags'] in [29, 25]:
+        for x in orders:
+            if x['flags'] in [29, 25]:
+                dt = datetime.datetime(x['datetime']['year'],
                                           x['datetime']['month'],
                                           x['datetime']['day'],
                                           x['datetime']['hour'],
                                           x['datetime']['min'],
                                           x['datetime']['sec'])
 
-            dt = dt + datetime.timedelta(hours=2)
+                dt = dt + datetime.timedelta(hours=2)
 
-            if (datetime.datetime.now()-dt).seconds>15:
-                offers.send_transaction_kill_order(qpProvider, str(x['trans_id']), account, classCode, secCode, str(x['order_num']))
-
-            continue
+                if (datetime.datetime.now()-dt).seconds>15:
+                    offers.send_transaction_kill_order(qpProvider, str(x['trans_id']), account, classCode, secCode, str(x['order_num']))
 
         balance = 0
 
@@ -127,12 +151,12 @@ def do_loop(qpProvider):
              stop = round(stop, 2)
 
              if take<=best_bid:
-                 offers.add_offer(qpProvider, take, 'S', account, classCode, secCode, multiplicity)
+                 offers.add_offer(qpProvider, best_bid, 'S', account, classCode, secCode, multiplicity)
 
                  last_type_order =  0
 
              elif stop>=best_bid:
-                 offers.add_offer(qpProvider, stop, 'S', account, classCode, secCode, multiplicity)
+                 offers.add_offer(qpProvider, best_bid, 'S', account, classCode, secCode, multiplicity)
 
                  last_type_order =  0
 
@@ -144,12 +168,12 @@ def do_loop(qpProvider):
              stop = round(stop, 2)
 
              if take>=best_offer:
-                 offers.add_offer(qpProvider, take, 'B', account, classCode, secCode, multiplicity)
+                 offers.add_offer(qpProvider, best_offer, 'B', account, classCode, secCode, multiplicity)
 
                  last_type_order = 1
 
              elif stop<=best_offer:
-                 offers.add_offer(qpProvider, stop, 'B', account, classCode, secCode, multiplicity)
+                 offers.add_offer(qpProvider, best_offer, 'B', account, classCode, secCode, multiplicity)
 
                  last_type_order = 1
 
