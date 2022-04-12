@@ -13,6 +13,10 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Scalper", "Scalper\Scalper.
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Alert", "Alert\Alert.pyproj", "{C960BA40-1AF8-4197-8CC7-EBAEA1BBDD4E}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "SupRes", "SupRes\SupRes.pyproj", "{4E846B64-8B51-46C9-A932-3E969AB0BAE4}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Predict", "Predict\Predict.pyproj", "{764BCE9B-926F-4E83-B8EF-85E63384213E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +33,10 @@ Global
 		{1957C3E7-6C5E-4A51-AA57-3137D6143B59}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C960BA40-1AF8-4197-8CC7-EBAEA1BBDD4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C960BA40-1AF8-4197-8CC7-EBAEA1BBDD4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E846B64-8B51-46C9-A932-3E969AB0BAE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E846B64-8B51-46C9-A932-3E969AB0BAE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{764BCE9B-926F-4E83-B8EF-85E63384213E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{764BCE9B-926F-4E83-B8EF-85E63384213E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
